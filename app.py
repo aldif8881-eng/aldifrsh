@@ -11,9 +11,9 @@ from sklearn.metrics import r2_score
 
 
 
-# =========================
+# =====================
 # SETTING
-# =========================
+# =====================
 
 st.set_page_config(
     page_title="Analisis Statistik Aldi Frsh",
@@ -21,10 +21,9 @@ st.set_page_config(
 )
 
 
-
-# =========================
-# TAMPILAN
-# =========================
+# =====================
+# STYLE
+# =====================
 
 st.markdown("""
 <style>
@@ -35,10 +34,10 @@ background: linear-gradient(135deg,#e3f2fd,#ffffff);
 
 h1{
 text-align:center;
-font-size:42px;
 }
 
 </style>
+
 """, unsafe_allow_html=True)
 
 
@@ -46,18 +45,17 @@ font-size:42px;
 st.title("📊 Analisis Statistik Aldi Frsh")
 
 st.write(
-    "Aplikasi Analisis Data CSV dan Excel"
+    "Upload data CSV atau Excel untuk analisis statistik"
 )
 
 
 
-# =========================
-# UPLOAD FILE
-# =========================
-
+# =====================
+# UPLOAD
+# =====================
 
 file = st.file_uploader(
-    "Upload File CSV / Excel",
+    "Upload File",
     type=["csv","xlsx"]
 )
 
@@ -65,8 +63,6 @@ file = st.file_uploader(
 
 if file:
 
-
-    # baca data
 
     if file.name.endswith(".csv"):
 
@@ -78,7 +74,7 @@ if file:
 
 
 
-    st.subheader("📄 Data Awal")
+    st.subheader("Data Awal")
 
     st.dataframe(
         df,
@@ -87,12 +83,12 @@ if file:
 
 
 
-    # =========================
-    # INFO
-    # =========================
+    # =====================
+    # INFORMASI
+    # =====================
 
 
-    st.header("📌 Informasi Dataset")
+    st.header("Informasi Dataset")
 
 
     a,b,c = st.columns(3)
@@ -117,30 +113,29 @@ if file:
 
 
 
-    # =========================
+    # =====================
     # DESKRIPTIF
-    # =========================
+    # =====================
 
 
-    st.header("📊 Statistik Deskriptif")
+    st.header("Statistik Deskriptif")
 
 
     st.dataframe(
-        df.describe(),
-        use_container_width=True
+        df.describe()
     )
 
 
 
-    # =========================
+    # =====================
     # MISSING
-    # =========================
+    # =====================
 
 
-    st.header("🔎 Missing Value")
+    st.header("Missing Value")
 
 
-    missing = pd.DataFrame({
+    miss = pd.DataFrame({
 
         "Kolom":df.columns,
 
@@ -149,13 +144,13 @@ if file:
     })
 
 
-    st.dataframe(missing)
+    st.dataframe(miss)
 
 
 
-    # =========================
-    # NUMERIK
-    # =========================
+    # =====================
+    # VARIABEL ANGKA
+    # =====================
 
 
     numerik = df.select_dtypes(
@@ -164,36 +159,30 @@ if file:
 
 
 
-    if len(numerik)>0:
+    if len(numerik) > 0:
 
 
 
-        # =========================
         # GRAFIK
-        # =========================
+
+        st.header("Visualisasi")
 
 
-        st.header("📈 Grafik")
+        grafik = st.selectbox(
+            "Pilih Variabel Grafik",
+            numerik,
+            key="grafik"
+        )
 
-
-        pilih = st.selectbox(
-    "Pilih Variabel Grafik",
-    numerik,
-    key="select_grafik"
-)
 
 
         fig,ax = plt.subplots()
 
 
         sns.histplot(
-
-            df[pilih],
-
+            df[grafik],
             kde=True,
-
             ax=ax
-
         )
 
 
@@ -201,12 +190,10 @@ if file:
 
 
 
-        # =========================
         # KORELASI
-        # =========================
 
 
-        st.header("🔥 Korelasi")
+        st.header("Korelasi")
 
 
         if len(numerik)>1:
@@ -233,68 +220,71 @@ if file:
 
         else:
 
-
             st.warning(
-                "Minimal 2 variabel numerik untuk korelasi"
+                "Butuh minimal 2 variabel angka"
             )
 
 
 
-        # =========================
-# NORMALITAS
-# =========================
-
-st.header("📋 Uji Normalitas")
+        # NORMALITAS
 
 
-normal_var = st.selectbox(
-    "Pilih Variabel Normalitas",
-    numerik,
-    key="select_normal"
-)
+        st.header("Uji Normalitas")
 
 
-if st.button("Uji Normalitas"):
+        normal = st.selectbox(
 
+            "Pilih Variabel Normalitas",
 
-    data = df[normal_var].dropna()
+            numerik,
 
+            key="normal"
 
-    if len(data) > 500:
-
-        data = data.sample(500)
-
-
-
-    stat,p = shapiro(data)
-
-
-
-    st.write(
-        "P-value:",
-        p
-    )
-
-
-    if p > 0.05:
-
-        st.success(
-            "Data Normal"
-        )
-
-    else:
-
-        st.warning(
-            "Data Tidak Normal"
         )
 
 
-        # =========================
+
+        if st.button("Hitung Normalitas"):
+
+
+            data = df[normal].dropna()
+
+
+
+            if len(data)>500:
+
+                data=data.sample(500)
+
+
+
+            stat,p = shapiro(data)
+
+
+
+            st.write(
+                "P-value:",
+                p
+            )
+
+
+            if p > 0.05:
+
+                st.success(
+                    "Data Normal"
+                )
+
+            else:
+
+                st.warning(
+                    "Data Tidak Normal"
+                )
+
+
+
         # REGRESI
-        # =========================
 
 
-        st.header("📈 Regresi Linear")
+        st.header("Regresi Linear")
 
 
         x = st.selectbox(
@@ -326,10 +316,9 @@ if st.button("Uji Normalitas"):
             model = LinearRegression()
 
 
-            X=df[[x]]
+            X = df[[x]]
 
-            Y=df[y]
-
+            Y = df[y]
 
 
             model.fit(
@@ -338,16 +327,12 @@ if st.button("Uji Normalitas"):
             )
 
 
-            pred=model.predict(X)
+            pred = model.predict(X)
 
 
-
-            r2=r2_score(
-
+            r2 = r2_score(
                 Y,
-
                 pred
-
             )
 
 
@@ -359,16 +344,13 @@ if st.button("Uji Normalitas"):
 
 
             st.write(
-
                 "R² =",
-
                 r2
-
             )
 
 
 
-            fig,ax=plt.subplots()
+            fig,ax = plt.subplots()
 
 
             ax.scatter(
@@ -391,7 +373,7 @@ if st.button("Uji Normalitas"):
 
 
         st.warning(
-            "Data tidak memiliki variabel angka"
+            "Tidak ada data numerik"
         )
 
 
