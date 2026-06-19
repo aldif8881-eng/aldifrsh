@@ -215,12 +215,12 @@ else:
     st.header("🔥 Korelasi Variabel")
 
 
+if len(numerik) > 1:
+
     fig,ax=plt.subplots(
         figsize=(10,6)
     )
 
-
-    if len(numerik) > 1:
 
     sns.heatmap(
         df[numerik].corr(),
@@ -228,17 +228,15 @@ else:
         ax=ax
     )
 
+
+    st.pyplot(fig)
+
+
 else:
 
     st.warning(
         "Minimal membutuhkan 2 variabel numerik untuk korelasi"
     )
-        annot=True,
-        ax=ax
-    )
-
-
-    st.pyplot(fig)
 
 
 
