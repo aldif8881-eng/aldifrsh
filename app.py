@@ -10,9 +10,8 @@ from sklearn.linear_model import LinearRegression
 from sklearn.metrics import r2_score
 
 
-
 # =====================
-# SETTING
+# CONFIG
 # =====================
 
 st.set_page_config(
@@ -29,7 +28,7 @@ st.markdown("""
 <style>
 
 .stApp{
-background: linear-gradient(135deg,#e3f2fd,#ffffff);
+background:linear-gradient(135deg,#e3f2fd,#ffffff);
 }
 
 h1{
@@ -45,7 +44,7 @@ text-align:center;
 st.title("📊 Analisis Statistik Aldi Frsh")
 
 st.write(
-    "Upload data CSV atau Excel untuk analisis statistik"
+    "Aplikasi Analisis Data CSV dan Excel"
 )
 
 
@@ -54,8 +53,9 @@ st.write(
 # UPLOAD
 # =====================
 
+
 file = st.file_uploader(
-    "Upload File",
+    "Upload File CSV / Excel",
     type=["csv","xlsx"]
 )
 
@@ -63,6 +63,8 @@ file = st.file_uploader(
 
 if file:
 
+
+    # BACA FILE
 
     if file.name.endswith(".csv"):
 
@@ -74,7 +76,7 @@ if file:
 
 
 
-    st.subheader("Data Awal")
+    st.subheader("📄 Data")
 
     st.dataframe(
         df,
@@ -84,11 +86,11 @@ if file:
 
 
     # =====================
-    # INFORMASI
+    # INFO
     # =====================
 
 
-    st.header("Informasi Dataset")
+    st.header("📌 Informasi Dataset")
 
 
     a,b,c = st.columns(3)
@@ -118,7 +120,7 @@ if file:
     # =====================
 
 
-    st.header("Statistik Deskriptif")
+    st.header("📊 Statistik Deskriptif")
 
 
     st.dataframe(
@@ -132,10 +134,10 @@ if file:
     # =====================
 
 
-    st.header("Missing Value")
+    st.header("🔎 Missing Value")
 
 
-    miss = pd.DataFrame({
+    missing = pd.DataFrame({
 
         "Kolom":df.columns,
 
@@ -144,12 +146,14 @@ if file:
     })
 
 
-    st.dataframe(miss)
+    st.dataframe(
+        missing
+    )
 
 
 
     # =====================
-    # VARIABEL ANGKA
+    # NUMERIK
     # =====================
 
 
@@ -163,15 +167,22 @@ if file:
 
 
 
+        # =====================
         # GRAFIK
+        # =====================
 
-        st.header("Visualisasi")
+
+        st.header("📈 Grafik")
 
 
         grafik = st.selectbox(
+
             "Pilih Variabel Grafik",
+
             numerik,
+
             key="grafik"
+
         )
 
 
@@ -180,9 +191,13 @@ if file:
 
 
         sns.histplot(
-            df[grafik],
+
+            df[grafik].dropna(),
+
             kde=True,
+
             ax=ax
+
         )
 
 
@@ -190,10 +205,12 @@ if file:
 
 
 
+        # =====================
         # KORELASI
+        # =====================
 
 
-        st.header("Korelasi")
+        st.header("🔥 Korelasi")
 
 
         if len(numerik)>1:
@@ -220,21 +237,24 @@ if file:
 
         else:
 
+
             st.warning(
-                "Butuh minimal 2 variabel angka"
+                "Data kurang untuk korelasi"
             )
 
 
 
+        # =====================
         # NORMALITAS
+        # =====================
 
 
-        st.header("Uji Normalitas")
+        st.header("📋 Uji Normalitas")
 
 
         normal = st.selectbox(
 
-            "Pilih Variabel Normalitas",
+            "Pilih Variabel",
 
             numerik,
 
@@ -257,7 +277,7 @@ if file:
 
 
 
-            stat,p = shapiro(data)
+            hasil,p = shapiro(data)
 
 
 
@@ -281,10 +301,13 @@ if file:
 
 
 
+        # =====================
         # REGRESI
+        # =====================
 
 
-        st.header("Regresi Linear")
+        st.header("📈 Regresi Linear")
+
 
 
         x = st.selectbox(
@@ -313,61 +336,84 @@ if file:
         if st.button("Hitung Regresi"):
 
 
-            model = LinearRegression()
-
-
-            data_regresi = df[[x,y]].dropna()
-
-
-            X = data_regresi[[x]]
-
-            Y = data_regresi[y]
-
-
-            model.fit(
-                X,
-                Y
-            )
-
-            pred = model.predict(X)
-
-
-            r2 = r2_score(
-                Y,
-                pred
-            )
-
-
-            st.write(
-
-                f"{y} = {model.coef_[0]:.4f}({x}) + {model.intercept_:.4f}"
-
-            )
-
-
-            st.write(
-                "R² =",
-                r2
-            )
+            data_reg = df[[x,y]].dropna()
 
 
 
-            fig,ax = plt.subplots()
+            if len(data_reg)<2:
 
 
-            ax.scatter(
-                X,
-                Y
-            )
+                st.warning(
+                    "Data tidak cukup"
+                )
 
 
-            ax.plot(
-                X,
-                pred
-            )
+            else:
 
 
-            st.pyplot(fig)
+                X = data_reg[[x]]
+
+                Y = data_reg[y]
+
+
+
+                model = LinearRegression()
+
+
+
+                model.fit(
+                    X,
+                    Y
+                )
+
+
+
+                pred = model.predict(
+                    X
+                )
+
+
+
+                nilai_r2 = r2_score(
+                    Y,
+                    pred
+                )
+
+
+
+                st.write(
+
+                    f"{y} = {model.coef_[0]:.4f}({x}) + {model.intercept_:.4f}"
+
+                )
+
+
+                st.write(
+
+                    "R² =",
+
+                    nilai_r2
+
+                )
+
+
+
+                fig,ax = plt.subplots()
+
+
+                ax.scatter(
+                    X,
+                    Y
+                )
+
+
+                ax.plot(
+                    X,
+                    pred
+                )
+
+
+                st.pyplot(fig)
 
 
 
@@ -375,7 +421,7 @@ if file:
 
 
         st.warning(
-            "Tidak ada data numerik"
+            "Tidak ada kolom angka"
         )
 
 
