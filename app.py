@@ -10,9 +10,9 @@ from sklearn.linear_model import LinearRegression
 from sklearn.metrics import r2_score
 
 
-# =====================
-# CONFIG
-# =====================
+# ==========================
+# SETTING
+# ==========================
 
 st.set_page_config(
     page_title="Analisis Statistik Aldi Frsh",
@@ -20,9 +20,9 @@ st.set_page_config(
 )
 
 
-# =====================
+# ==========================
 # STYLE
-# =====================
+# ==========================
 
 st.markdown("""
 <style>
@@ -33,10 +33,10 @@ background:linear-gradient(135deg,#e3f2fd,#ffffff);
 
 h1{
 text-align:center;
+font-size:40px;
 }
 
 </style>
-
 """, unsafe_allow_html=True)
 
 
@@ -44,15 +44,14 @@ text-align:center;
 st.title("📊 Analisis Statistik Aldi Frsh")
 
 st.write(
-    "Aplikasi Analisis Data CSV dan Excel"
+    "Aplikasi analisis data CSV dan Excel"
 )
 
 
 
-# =====================
-# UPLOAD
-# =====================
-
+# ==========================
+# UPLOAD DATA
+# ==========================
 
 file = st.file_uploader(
     "Upload File CSV / Excel",
@@ -64,8 +63,6 @@ file = st.file_uploader(
 if file:
 
 
-    # BACA FILE
-
     if file.name.endswith(".csv"):
 
         df = pd.read_csv(file)
@@ -76,7 +73,7 @@ if file:
 
 
 
-    st.subheader("📄 Data")
+    st.subheader("📄 Data Awal")
 
     st.dataframe(
         df,
@@ -85,9 +82,9 @@ if file:
 
 
 
-    # =====================
-    # INFO
-    # =====================
+    # ==========================
+    # INFORMASI
+    # ==========================
 
 
     st.header("📌 Informasi Dataset")
@@ -103,7 +100,7 @@ if file:
 
 
     b.metric(
-        "Jumlah Kolom",
+        "Jumlah Variabel",
         len(df.columns)
     )
 
@@ -115,23 +112,46 @@ if file:
 
 
 
-    # =====================
+    # ==========================
     # DESKRIPTIF
-    # =====================
+    # ==========================
 
 
     st.header("📊 Statistik Deskriptif")
 
 
-    st.dataframe(
-        df.describe()
+    des = df.describe()
+
+
+    st.dataframe(des)
+
+
+
+    # NARASI DESKRIPTIF
+
+
+    kolom_awal = des.columns[0]
+
+
+    st.info(
+        f"""
+        Dataset memiliki {len(df)} data.
+
+        Variabel **{kolom_awal}** memiliki nilai rata-rata
+        sebesar **{des.loc['mean',kolom_awal]:.2f}**.
+
+        Nilai minimum sebesar 
+        **{des.loc['min',kolom_awal]:.2f}**
+        dan maksimum sebesar
+        **{des.loc['max',kolom_awal]:.2f}**.
+        """
     )
 
 
 
-    # =====================
-    # MISSING
-    # =====================
+    # ==========================
+    # MISSING VALUE
+    # ==========================
 
 
     st.header("🔎 Missing Value")
@@ -146,15 +166,13 @@ if file:
     })
 
 
-    st.dataframe(
-        missing
-    )
+    st.dataframe(missing)
 
 
 
-    # =====================
-    # NUMERIK
-    # =====================
+    # ==========================
+    # VARIABEL NUMERIK
+    # ==========================
 
 
     numerik = df.select_dtypes(
@@ -163,21 +181,21 @@ if file:
 
 
 
-    if len(numerik) > 0:
+    if len(numerik)>0:
 
 
 
-        # =====================
+        # ==========================
         # GRAFIK
-        # =====================
+        # ==========================
 
 
-        st.header("📈 Grafik")
+        st.header("📈 Visualisasi")
 
 
-        grafik = st.selectbox(
+        pilih = st.selectbox(
 
-            "Pilih Variabel Grafik",
+            "Pilih Variabel",
 
             numerik,
 
@@ -186,13 +204,12 @@ if file:
         )
 
 
-
         fig,ax = plt.subplots()
 
 
         sns.histplot(
 
-            df[grafik].dropna(),
+            df[pilih].dropna(),
 
             kde=True,
 
@@ -205,9 +222,9 @@ if file:
 
 
 
-        # =====================
+        # ==========================
         # KORELASI
-        # =====================
+        # ==========================
 
 
         st.header("🔥 Korelasi")
@@ -221,9 +238,13 @@ if file:
             )
 
 
+            corr = df[numerik].corr()
+
+
+
             sns.heatmap(
 
-                df[numerik].corr(),
+                corr,
 
                 annot=True,
 
@@ -235,6 +256,37 @@ if file:
             st.pyplot(fig)
 
 
+
+            nilai = corr.abs().unstack()
+
+
+            nilai = nilai[nilai < 1]
+
+
+            pasangan = nilai.idxmax()
+
+
+            hasil_corr = corr.loc[
+                pasangan[0],
+                pasangan[1]
+            ]
+
+
+
+            st.info(
+
+                f"""
+                Variabel **{pasangan[0]}**
+                dan **{pasangan[1]}**
+
+                memiliki hubungan korelasi sebesar
+                **{hasil_corr:.2f}**.
+
+                """
+
+            )
+
+
         else:
 
 
@@ -244,17 +296,17 @@ if file:
 
 
 
-        # =====================
+        # ==========================
         # NORMALITAS
-        # =====================
+        # ==========================
 
 
         st.header("📋 Uji Normalitas")
 
 
-        normal = st.selectbox(
+        normal_var = st.selectbox(
 
-            "Pilih Variabel",
+            "Variabel Normalitas",
 
             numerik,
 
@@ -267,8 +319,7 @@ if file:
         if st.button("Hitung Normalitas"):
 
 
-            data = df[normal].dropna()
-
+            data = df[normal_var].dropna()
 
 
             if len(data)>500:
@@ -277,7 +328,7 @@ if file:
 
 
 
-            hasil,p = shapiro(data)
+            stat,p = shapiro(data)
 
 
 
@@ -287,27 +338,41 @@ if file:
             )
 
 
-            if p > 0.05:
+            if p>0.05:
+
 
                 st.success(
-                    "Data Normal"
+                    "Data berdistribusi normal"
                 )
+
 
             else:
 
+
                 st.warning(
-                    "Data Tidak Normal"
+                    "Data tidak normal"
                 )
 
 
 
-        # =====================
+            st.info(
+
+                f"""
+                Berdasarkan uji Shapiro-Wilk,
+                nilai p-value adalah **{p:.4f}**.
+
+                """
+
+            )
+
+
+
+        # ==========================
         # REGRESI
-        # =====================
+        # ==========================
 
 
         st.header("📈 Regresi Linear")
-
 
 
         x = st.selectbox(
@@ -340,80 +405,86 @@ if file:
 
 
 
-            if len(data_reg)<2:
+            X = data_reg[[x]]
 
-
-                st.warning(
-                    "Data tidak cukup"
-                )
-
-
-            else:
-
-
-                X = data_reg[[x]]
-
-                Y = data_reg[y]
+            Y = data_reg[y]
 
 
 
-                model = LinearRegression()
+            model = LinearRegression()
 
 
 
-                model.fit(
-                    X,
-                    Y
-                )
+            model.fit(
+                X,
+                Y
+            )
 
 
 
-                pred = model.predict(
-                    X
-                )
+            pred = model.predict(X)
 
 
 
-                nilai_r2 = r2_score(
-                    Y,
-                    pred
-                )
+            r2 = r2_score(
+                Y,
+                pred
+            )
 
 
 
-                st.write(
+            st.write(
 
-                    f"{y} = {model.coef_[0]:.4f}({x}) + {model.intercept_:.4f}"
+                f"""
+                Persamaan:
 
-                )
+                **{y} = {model.coef_[0]:.4f}({x})
+                + {model.intercept_:.4f}**
 
+                """
 
-                st.write(
-
-                    "R² =",
-
-                    nilai_r2
-
-                )
+            )
 
 
-
-                fig,ax = plt.subplots()
-
-
-                ax.scatter(
-                    X,
-                    Y
-                )
+            st.write(
+                "R² =",
+                r2
+            )
 
 
-                ax.plot(
-                    X,
-                    pred
-                )
+
+            st.info(
+
+                f"""
+                Variabel **{x}**
+                mempengaruhi variabel **{y}**.
+
+                Model mampu menjelaskan
+                **{r2*100:.2f}%**
+                variasi data.
+
+                """
+
+            )
 
 
-                st.pyplot(fig)
+
+            fig,ax = plt.subplots()
+
+
+            ax.scatter(
+                X,
+                Y
+            )
+
+
+            ax.plot(
+                X,
+                pred
+            )
+
+
+            st.pyplot(fig)
 
 
 
@@ -421,7 +492,7 @@ if file:
 
 
         st.warning(
-            "Tidak ada kolom angka"
+            "Tidak ada variabel angka"
         )
 
 
