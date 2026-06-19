@@ -316,16 +316,18 @@ if file:
             model = LinearRegression()
 
 
-            X = df[[x]]
+            data_regresi = df[[x,y]].dropna()
 
-            Y = df[y]
+
+            X = data_regresi[[x]]
+
+            Y = data_regresi[y]
 
 
             model.fit(
                 X,
                 Y
             )
-
 
             pred = model.predict(X)
 
