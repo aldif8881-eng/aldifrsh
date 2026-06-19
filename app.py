@@ -10,9 +10,10 @@ from sklearn.linear_model import LinearRegression
 from sklearn.metrics import r2_score
 
 
-# ==========================
-# SETTING HALAMAN
-# ==========================
+
+# =========================
+# SETTING
+# =========================
 
 st.set_page_config(
     page_title="Analisis Statistik Aldi Frsh",
@@ -20,29 +21,24 @@ st.set_page_config(
 )
 
 
-# ==========================
-# STYLE MODERN
-# ==========================
+
+# =========================
+# TAMPILAN
+# =========================
 
 st.markdown("""
 <style>
 
-.stApp {
-    background: linear-gradient(135deg,#e3f2fd,#f5f5f5);
+.stApp{
+background: linear-gradient(135deg,#e3f2fd,#ffffff);
 }
 
-h1 {
-    text-align:center;
-    font-size:40px;
-    font-weight:bold;
-}
-
-.block-container{
-    padding-top:2rem;
+h1{
+text-align:center;
+font-size:42px;
 }
 
 </style>
-
 """, unsafe_allow_html=True)
 
 
@@ -50,17 +46,18 @@ h1 {
 st.title("📊 Analisis Statistik Aldi Frsh")
 
 st.write(
-    "Aplikasi analisis data statistik menggunakan Streamlit"
+    "Aplikasi Analisis Data CSV dan Excel"
 )
 
 
 
-# ==========================
-# UPLOAD CSV / EXCEL
-# ==========================
+# =========================
+# UPLOAD FILE
+# =========================
+
 
 file = st.file_uploader(
-    "📂 Upload File Data (CSV / Excel)",
+    "Upload File CSV / Excel",
     type=["csv","xlsx"]
 )
 
@@ -68,6 +65,8 @@ file = st.file_uploader(
 
 if file:
 
+
+    # baca data
 
     if file.name.endswith(".csv"):
 
@@ -88,39 +87,39 @@ if file:
 
 
 
-    # ==========================
-    # INFORMASI
-    # ==========================
+    # =========================
+    # INFO
+    # =========================
 
 
     st.header("📌 Informasi Dataset")
 
 
-    col1,col2,col3 = st.columns(3)
+    a,b,c = st.columns(3)
 
 
-    col1.metric(
+    a.metric(
         "Jumlah Data",
         len(df)
     )
 
 
-    col2.metric(
-        "Jumlah Variabel",
+    b.metric(
+        "Jumlah Kolom",
         len(df.columns)
     )
 
 
-    col3.metric(
+    c.metric(
         "Missing Value",
         df.isnull().sum().sum()
     )
 
 
 
-    # ==========================
+    # =========================
     # DESKRIPTIF
-    # ==========================
+    # =========================
 
 
     st.header("📊 Statistik Deskriptif")
@@ -133,249 +132,274 @@ if file:
 
 
 
-    # ==========================
-    # MISSING VALUE
-    # ==========================
+    # =========================
+    # MISSING
+    # =========================
 
 
-    st.header("🔎 Cek Missing Value")
+    st.header("🔎 Missing Value")
 
 
-    miss=pd.DataFrame(
-        {
+    missing = pd.DataFrame({
+
         "Kolom":df.columns,
+
         "Jumlah Kosong":df.isnull().sum()
-        }
-    )
+
+    })
 
 
-    st.table(miss)
-
-
-
-    # ==========================
-    # VISUALISASI
-    # ==========================
-
-
-    st.header("📈 Visualisasi")
-
-
-    numerik=df.select_dtypes(
-    include=np.number
-).columns.tolist()
-
-
-if len(numerik) > 0:
-
-    pilih=st.selectbox(
-        "Pilih Variabel",
-        numerik
-    )
-
-
-    fig,ax=plt.subplots()
-
-
-    sns.histplot(
-        df[pilih],
-        kde=True,
-        ax=ax
-    )
-
-
-    st.pyplot(fig)
-
-else:
-
-    st.warning(
-        "Data tidak memiliki kolom numerik untuk dibuat grafik"
-    )
-
-
-    fig,ax=plt.subplots()
-
-
-    sns.histplot(
-        df[pilih],
-        kde=True,
-        ax=ax
-    )
-
-
-    st.pyplot(fig)
+    st.dataframe(missing)
 
 
 
-    # ==========================
-    # KORELASI
-    # ==========================
+    # =========================
+    # NUMERIK
+    # =========================
 
 
-    st.header("🔥 Korelasi Variabel")
-
-
-if len(numerik) > 1:
-
-    fig,ax=plt.subplots(
-        figsize=(10,6)
-    )
-
-
-    sns.heatmap(
-        df[numerik].corr(),
-        annot=True,
-        ax=ax
-    )
-
-
-    st.pyplot(fig)
-
-
-else:
-
-    st.warning(
-        "Minimal membutuhkan 2 variabel numerik untuk korelasi"
-    )
+    numerik = df.select_dtypes(
+        include=np.number
+    ).columns.tolist()
 
 
 
-    # ==========================
-    # NORMALITAS
-    # ==========================
-
-
-    st.header("📋 Uji Normalitas Shapiro")
-
-
-    variabel=st.selectbox(
-        "Variabel Normalitas",
-        numerik
-    )
-
-
-    if st.button("Hitung Normalitas"):
-
-
-        data=df[variabel].dropna()
-
-
-        if len(data)>500:
-
-            data=data.sample(500)
+    if len(numerik)>0:
 
 
 
-        stat,p=shapiro(data)
+        # =========================
+        # GRAFIK
+        # =========================
 
 
+        st.header("📈 Grafik")
 
-        st.write(
-            "P-value:",
-            p
+
+        pilih = st.selectbox(
+
+            "Pilih Variabel",
+
+            numerik
+
         )
 
 
-        if p>0.05:
-
-            st.success(
-                "Data Berdistribusi Normal"
-            )
-
-        else:
-
-            st.warning(
-                "Data Tidak Normal"
-            )
+        fig,ax = plt.subplots()
 
 
+        sns.histplot(
 
-    # ==========================
-    # REGRESI
-    # ==========================
+            df[pilih],
 
+            kde=True,
 
-    st.header("📈 Regresi Linear")
+            ax=ax
 
-
-    x=st.selectbox(
-        "Variabel Bebas (X)",
-        numerik
-    )
-
-
-    y=st.selectbox(
-        "Variabel Terikat (Y)",
-        numerik
-    )
-
-
-
-    if st.button("Analisis Regresi"):
-
-
-        model=LinearRegression()
-
-
-        X=df[[x]]
-
-        Y=df[y]
-
-
-        model.fit(
-            X,
-            Y
         )
-
-
-        pred=model.predict(X)
-
-
-
-        r2=r2_score(
-            Y,
-            pred
-        )
-
-
-        st.write(
-            f"Persamaan:"
-        )
-
-
-        st.write(
-            f"{y} = {model.coef_[0]:.4f}({x}) + {model.intercept_:.4f}"
-        )
-
-
-        st.write(
-            "R² = ",
-            r2
-        )
-
-
-
-        fig,ax=plt.subplots()
-
-
-        ax.scatter(
-            X,
-            Y
-        )
-
-
-        ax.plot(
-            X,
-            pred
-        )
-
-
-        ax.set_xlabel(x)
-
-        ax.set_ylabel(y)
 
 
         st.pyplot(fig)
+
+
+
+        # =========================
+        # KORELASI
+        # =========================
+
+
+        st.header("🔥 Korelasi")
+
+
+        if len(numerik)>1:
+
+
+            fig,ax = plt.subplots(
+                figsize=(10,6)
+            )
+
+
+            sns.heatmap(
+
+                df[numerik].corr(),
+
+                annot=True,
+
+                ax=ax
+
+            )
+
+
+            st.pyplot(fig)
+
+
+        else:
+
+
+            st.warning(
+                "Minimal 2 variabel numerik untuk korelasi"
+            )
+
+
+
+        # =========================
+        # NORMALITAS
+        # =========================
+
+
+        st.header("📋 Uji Normalitas")
+
+
+        normal_var = st.selectbox(
+
+            "Pilih Variabel",
+
+            numerik
+
+        )
+
+
+        if st.button("Uji Normalitas"):
+
+
+            data=df[normal_var].dropna()
+
+
+            if len(data)>500:
+
+                data=data.sample(500)
+
+
+
+            stat,p = shapiro(data)
+
+
+
+            st.write(
+                "P-value:",
+                p
+            )
+
+
+
+            if p>0.05:
+
+                st.success(
+                    "Data Normal"
+                )
+
+            else:
+
+                st.warning(
+                    "Data Tidak Normal"
+                )
+
+
+
+        # =========================
+        # REGRESI
+        # =========================
+
+
+        st.header("📈 Regresi Linear")
+
+
+        x = st.selectbox(
+
+            "Variabel X",
+
+            numerik,
+
+            key="x"
+
+        )
+
+
+        y = st.selectbox(
+
+            "Variabel Y",
+
+            numerik,
+
+            key="y"
+
+        )
+
+
+
+        if st.button("Hitung Regresi"):
+
+
+            model = LinearRegression()
+
+
+            X=df[[x]]
+
+            Y=df[y]
+
+
+
+            model.fit(
+                X,
+                Y
+            )
+
+
+            pred=model.predict(X)
+
+
+
+            r2=r2_score(
+
+                Y,
+
+                pred
+
+            )
+
+
+            st.write(
+
+                f"{y} = {model.coef_[0]:.4f}({x}) + {model.intercept_:.4f}"
+
+            )
+
+
+            st.write(
+
+                "R² =",
+
+                r2
+
+            )
+
+
+
+            fig,ax=plt.subplots()
+
+
+            ax.scatter(
+                X,
+                Y
+            )
+
+
+            ax.plot(
+                X,
+                pred
+            )
+
+
+            st.pyplot(fig)
+
+
+
+    else:
+
+
+        st.warning(
+            "Data tidak memiliki variabel angka"
+        )
 
 
 
@@ -383,5 +407,5 @@ else:
 
 
     st.info(
-        "Silahkan upload file CSV atau Excel"
+        "Silahkan upload file"
     )
