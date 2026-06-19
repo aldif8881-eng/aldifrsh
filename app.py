@@ -241,59 +241,52 @@ if file:
 
 
         # =========================
-        # NORMALITAS
-        # =========================
+# NORMALITAS
+# =========================
 
-
-        st.header("📋 Uji Normalitas")
+st.header("📋 Uji Normalitas")
 
 
 normal_var = st.selectbox(
-
     "Pilih Variabel Normalitas",
-
     numerik,
-
     key="select_normal"
-
 )
 
 
-        if st.button("Uji Normalitas"):
+if st.button("Uji Normalitas"):
 
 
-            data=df[normal_var].dropna()
+    data = df[normal_var].dropna()
 
 
-            if len(data)>500:
+    if len(data) > 500:
 
-                data=data.sample(500)
-
-
-
-            stat,p = shapiro(data)
+        data = data.sample(500)
 
 
 
-            st.write(
-                "P-value:",
-                p
-            )
+    stat,p = shapiro(data)
 
 
 
-            if p>0.05:
+    st.write(
+        "P-value:",
+        p
+    )
 
-                st.success(
-                    "Data Normal"
-                )
 
-            else:
+    if p > 0.05:
 
-                st.warning(
-                    "Data Tidak Normal"
-                )
+        st.success(
+            "Data Normal"
+        )
 
+    else:
+
+        st.warning(
+            "Data Tidak Normal"
+        )
 
 
         # =========================
