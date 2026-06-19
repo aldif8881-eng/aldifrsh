@@ -177,12 +177,10 @@ if file:
 
 
         pilih = st.selectbox(
-
-            "Pilih Variabel",
-
-            numerik
-
-        )
+    "Pilih Variabel Grafik",
+    numerik,
+    key="select_grafik"
+)
 
 
         fig,ax = plt.subplots()
@@ -250,13 +248,15 @@ if file:
         st.header("📋 Uji Normalitas")
 
 
-        normal_var = st.selectbox(
+normal_var = st.selectbox(
 
-            "Pilih Variabel",
+    "Pilih Variabel Normalitas",
 
-            numerik
+    numerik,
 
-        )
+    key="select_normal"
+
+)
 
 
         if st.button("Uji Normalitas"):
