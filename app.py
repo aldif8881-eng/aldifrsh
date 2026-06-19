@@ -162,14 +162,34 @@ if file:
 
 
     numerik=df.select_dtypes(
-        include=np.number
-    ).columns
+    include=np.number
+).columns.tolist()
 
 
+if len(numerik) > 0:
 
     pilih=st.selectbox(
         "Pilih Variabel",
         numerik
+    )
+
+
+    fig,ax=plt.subplots()
+
+
+    sns.histplot(
+        df[pilih],
+        kde=True,
+        ax=ax
+    )
+
+
+    st.pyplot(fig)
+
+else:
+
+    st.warning(
+        "Data tidak memiliki kolom numerik untuk dibuat grafik"
     )
 
 
@@ -200,8 +220,19 @@ if file:
     )
 
 
+    if len(numerik) > 1:
+
     sns.heatmap(
         df[numerik].corr(),
+        annot=True,
+        ax=ax
+    )
+
+else:
+
+    st.warning(
+        "Minimal membutuhkan 2 variabel numerik untuk korelasi"
+    )
         annot=True,
         ax=ax
     )
